@@ -14,20 +14,34 @@ st.write("Enter your profile details below, complete the mini-quiz, and submit y
 # --------------------------------------------------------------------------
 # 🔐 GOOGLE SHEETS CLOUD CONNECTION SETUP
 # --------------------------------------------------------------------------
+# --------------------------------------------------------------------------
+# 🔐 UPDATED GOOGLE SHEETS CLOUD CONNECTION SETUP (WITH DETAILED DEBUGGING)
+# --------------------------------------------------------------------------
 @st.cache_resource
 def get_sheets_client():
-    # Streamlit securely stores your Google credentials in its dashboard secrets
     scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    
+    # 1. Check if the secret wrapper even exists
+    if "gcp_service_account" not in st.secrets:
+        st.error("❌ 'gcp_service_account' section is completely missing from your Streamlit Secrets!")
+        return None
+        
     secret_creds = dict(st.secrets["gcp_service_account"])
+    
+    # 2. Fix potential newline formatting issues automatically
+    if "private_key" in secret_creds:
+        secret_creds["private_key"] = secret_creds["private_key"].replace("\\n", "\n")
+        
     credentials = Credentials.from_service_account_info(secret_creds, scopes=scopes)
     return gspread.authorize(credentials)
 
 try:
     gc = get_sheets_client()
-    # Replace with your actual Google Sheet name or exact sheet URL
-    sheet = gc.open("Classroom_ML_Quiz_Grades").get_worksheet(0)
+    if gc:
+        # Make sure this matches your Google Sheet name EXACTLY
+        sheet = gc.open("Classroom_ML_Quiz_Grades").get_worksheet(0)
 except Exception as e:
-    st.error("🚨 Cloud connection database setup incomplete. Please configure Streamlit Secrets.")
+    st.error(f"🚨 Connection Failure Details: {e}")
     sheet = None
 
 # --------------------------------------------------------------------------
