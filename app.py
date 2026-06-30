@@ -19,16 +19,18 @@ st.write("Enter your profile details below, complete the mini-quiz, and submit y
 # --------------------------------------------------------------------------
 @st.cache_resource
 def get_sheets_client():
-    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    # 🌟 FIX: We must explicitly ask for BOTH Sheets and Drive scopes
+    scopes = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
     
-    # 1. Check if the secret wrapper even exists
     if "gcp_service_account" not in st.secrets:
         st.error("❌ 'gcp_service_account' section is completely missing from your Streamlit Secrets!")
         return None
         
     secret_creds = dict(st.secrets["gcp_service_account"])
     
-    # 2. Fix potential newline formatting issues automatically
     if "private_key" in secret_creds:
         secret_creds["private_key"] = secret_creds["private_key"].replace("\\n", "\n")
         
